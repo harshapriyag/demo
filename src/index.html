@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>LITERACY DASHBOARD</title>
+    <link rel="shortcut icon" type="image/png" href="assets/images/logo2.png">
+    
+    <link rel="stylesheet" type="text/css" href="assets/css/maps.css">
+    <link rel="stylesheet" type="text/css" href="assets/css/ol.css">
+   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.5.0/css/ol.css">
+
+    <link rel="stylesheet" type="text/css" href="assets/css/olExt.css">
+    
+    <link rel="stylesheet" type="text/css" href="assets/css/bootstrap.min.css">
+   <link href="https://maxcdn.bootstrapcdn.com/font-awesome/latest/css/font-awesome.min.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="assets/css/main.css">
+   
+
+    <style type="text/css">
+      .bg-green {
+      background: #85be00;
+      }
+    
+           .ol-scale-line{
+         left:50%; 
+         }
+     
+   .hello
+         {  left: 1%;
+         top: 8em;
+         }
+    
+
+    </style>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+
+    <script src="assets/js/jquery-min.js"></script>
+    <script src="assets/js/popper.min.js"></script>
+    <script src="assets/js/ol.js"></script>
+     <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.4.3/build/ol.js"></script>
+   <script src="assets/js/ol-popup.js"></script>
+    <script src="assets/js/olExt.js"></script>
+
+    <script src="assets/js/bootstrap.min.js"></script>
+  
+  </head>
+  <body>
+    
+<nav class="bg-dark text-center">
+  <h4 class="text-white text-center" href="#"> <img src="assets/images/logo.png" width="70" height="70" class="d-inline-block align-top" alt="">INDIAN LITERACY RATE DISTRICT WISE <img src="assets/images/logo2.png" width="70" height="70" class="" alt=""> <span style="right:0px;position: absolute;">
+    
+ </nav>
+ <div class="coordinate"></div>
+
+  <div class="container-fluid" id="mainpg" style = 'background: aliceblue;'>
+    <div class="row" id="maincontent">
+    
+    <div id="map" class="col-md-12" style="background-color: white;padding-left:0px;padding-right:0px;">
+      <div id="popup" class="ol-popup"> </div>
+</div>
+
+</div>
+
+</div>
+
+  <script  type="text/javascript">
+  var mobile;
+  function detec() { 
+            var isMobile = window.orientation > -1; 
+             mobile = isMobile
+        }
+  detec();
+$("#GotoGIS").click(function() {
+  if ($("#header-wrap").is(":visible")) {
+
+    $("#header-wrap").hide();
+  } else if ($("#header-wrap").is(":hidden")) {
+    $("#header-wrap").show();
+  }
+  
+    
+setTimeout(reSize, 250);
+   
+});
+
+function reSize() {
+
+   map.updateSize();
+   console.log('size'); 
+}
+// Basemap layers
+var attr = '<div style="text-align: left;font-size: .5rem"><b>DISCLAIMER</b><br>Due to variations in scale, layers may not depict exact locations on OSM or Other maps; Boundaries of Cadastral Map are displayed as received from the source and are not authentic nor meant to be authentic.</div>'
+var layers = [
+  new ol.layer.Group({
+    title: '<b style="color:#00ff21e8">Base Maps</b>',
+    openInLayerSwitcher: true,
+    layers: [
+      new ol.layer.Tile({
+        title: 'Here Terrain Map',
+        visible: false,
+        baseLayer: false,
+        source: new ol.source.XYZ({
+          url: 'https://1.aerial.maps.ls.hereapi.com/maptile/2.1/maptile/newest/terrain.day/{z}/{x}/{y}/256/png8?apiKey=IPTEDpK8mbJtwQAX-YIZRoty81BzpLwXwRHFxngkRqU',
+          attributions: attr
+        })
+      }),
+      new ol.layer.Tile({
+        title: 'Here Map',
+        visible: false,
+        baseLayer: false,
+        source: new ol.source.XYZ({
+          url: 'https://1.base.maps.ls.hereapi.com/maptile/2.1/maptile/newest/normal.day/{z}/{x}/{y}/256/png8?apiKey=IPTEDpK8mbJtwQAX-YIZRoty81BzpLwXwRHFxngkRqU',
+          attributions: attr
+        })
+      })
+    ]
+  })
+];
+
+var map = new ol.Map({
+  layers: layers,
+  target: 'map',
+  view: new ol.View({
+    center: [8781480.570496075, 1224732.6162325153],
+    zoom:7.6,
+  }),
+});
+ 
+
+ 
+
+// adding ol-ext controls
+var ctrl = new ol.control.LayerSwitcher({
+  show_progress: true,
+    reordering: false,
+  collapsed: true
+});
+map.addControl(ctrl);
+var scaleLineControl = new ol.control.ScaleLine();
+map.addControl(scaleLineControl);
+var fullScreenControll = new ol.control.FullScreen();
+map.addControl(fullScreenControll);
+var legend = new ol.control.Legend({
+  title: '',
+  collapsed: true
+});
+map.addControl(legend);
+legend.addRow({
+  title: '<b style="">Legend:</b><nav id="leg_end" style="min-width: 200px;"></br><nav>'
+})
+
+
+var tn = new ol.layer.Tile({
+  type: 'wms',
+
+  source: new ol.source.TileWMS({
+    url: 'http://localhost:8080/geoserver/pwd_django/wms',
+    
+    
+    params: {
+      'LAYERS': 'pwd_django:sp_district'
+    },
+    serverType: 'geoserver'
+  }),
+  displayInLayerSwitcher: true,
+  title: 'STATE BOUNDARY'
+});
+map.addLayer(tn);
+//<!--LATLONG-->
+var container = document.getElementById('popup');
+var content = document.getElementById('popup-content');
+var closer = document.getElementById('popup-closer');
+
+/**
+ * Create an overlay to anchor the popup to the map.
+ */
+
+
+map.on('pointermove', function(e) {
+  
+  console.log(e.coordinate)
+ $('.coordinate').html(`Lat: ${e.coordinate[0]} Lng:${e.coordinate[1]}`)
+})
+
+/*
+var element = document.getElementById('popup');
+      var popup = new ol.Overlay.Popup();
+      map.addOverlay(popup);
+      map.on('pointermove', function(evt) {
+        var iid, uid;
+        if ($('#type').val() == 'null' || $('#type').val() == undefined) {
+          function pop(pop_url1) {
+            pop_url1 = pop_url1.substring(0, pop_url1.length - 1);
+            pop_url1 = '[' + pop_url1 + ']';
+            pop_url = pop_url1.replace(/&/g, '%26');
+            $.ajax({
+              url: 'php/getPopup1.php',
+              type: 'POST',
+              data: 'pop_url=' + pop_url,
+              success: function(data) {
+                if (data) {
+                  popup.show(evt.coordinate, data);
+                }else{
+                  popup.hide();
+                  popup.setOffset([0, 0]);
+                }
+              }
+            });
+          }
+          var getPop = null;
+          if (!$('.tool-toggle').hasClass('active')) {
+            var prop = '';
+            var pop_url = '';
+            map.getLayers().forEach(function(layer) {
+              if (layer.get('type') == 'wms' && layer.get('visible') == true) {
+                iid = layer.get('title');
+                uid = layer.get('id');   
+                pop_url = pop_url + '{"url":"' + layer.getSource().getFeatureInfoUrl(evt.coordinate, map.getView().getResolution(), map.getView().getProjection(), {
+                  'INFO_FORMAT': 'text/plain',
+                  'FEATURE_COUNT': 1
+                }) + '","layer_name":"' + iid + '","uid":"' + uid + '"},';
+              }
+            })
+            if (pop_url != '') {
+              pop(pop_url);
+            }
+          }
+        }
+      });
+      function toggle_popup(table) {
+        if ($('.' + table + '_tr').is(":visible") == false) {
+          $('.' + table + '_tr').show();
+        } else {
+          $('.' + table + '_tr').hide();
+        }
+      }*/
+</script>
+<script src="assets/js/tdraw.js"></script>
+</body>
+</html>
+
+ 
